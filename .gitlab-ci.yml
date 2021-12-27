@@ -1,0 +1,18 @@
+stages:
+  - build
+before_script:
+  - export CI_JOB_TOKEN=${CI_JOB_TOKEN-$CI_BUILD_TOKEN}
+  - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+
+build:
+  stage: build
+  only:
+    - samba
+    - master
+    - develop
+  tags:
+    - docker
+  script:
+    - export DOCKER_IMAGE=$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+    - docker build --pull --build-arg SAMBA_SELFSERVICE_SERVER=$SAMBA_SELFSERVICE_SERVER --build-arg SAMBA_SELFSERVICE_PASSWORD=$SAMBA_SELFSERVICE_PASSWORD --build-arg SAMBA_SELFSERVICE_USER=$SAMBA_SELFSERVICE_USER --build-arg LDAP_SELFSERVICE_USER=$LDAP_SELFSERVICE_USER --build-arg LDAP_SELFSERVICE_PASSWORD=$LDAP_SELFSERVICE_PASSWORD --build-arg LDAP_SELFSERVICE_SERVER=$LDAP_SELFSERVICE_SERVER --build-arg TARGET_BRANCH=$CI_COMMIT_REF_NAME -t $DOCKER_IMAGE .
+    - docker push $DOCKER_IMAGE
